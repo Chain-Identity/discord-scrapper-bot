@@ -1,1 +1,1 @@
-# discord-scrapper-bot
+# Discord Scrapper Bot

@@ -1,0 +1,9 @@
+services:
+  discord-scrapper-bot:
+    container_name: discord-scrapper-bot
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    volumes:
+      - ./db:/app/prisma/db

@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./db/data.db?connection_limit=1"
+}
+
+model Message {
+  id                     String                @id
+  data                   String
+  type                   String
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  discordTargetChannel   DiscordTargetChannel  @relation(fields: [discordTargetChannelId], references: [id])
+  discordTargetChannelId String
+  discordSourceMessage   DiscordSourceMessage?
+}
+
+model DiscordSourceMessage {
+  id                     String               @id
+  data                   String
+  type                   String
+  status                 String
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  discordSourceChannel   DiscordSourceChannel @relation(fields: [discordSourceChannelId], references: [id])
+  discordSourceChannelId String
+  message                Message?             @relation(fields: [messageId], references: [id])
+  messageId              String?              @unique
+}
+
+model DiscordTargetChannel {
+  id                   String                @id
+  name                 String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  discordSourceChannel DiscordSourceChannel?
+  messages             Message[]
+}
+
+model DiscordSourceChannel {
+  id                     String                 @id
+  name                   String
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  summaryChannelId       String?
+  discordTargetChannel   DiscordTargetChannel   @relation(fields: [discordTargetChannelId], references: [id])
+  discordTargetChannelId String                 @unique
+  discordSourceMessages  DiscordSourceMessage[]
+}
