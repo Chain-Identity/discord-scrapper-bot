@@ -61,6 +61,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
             image: {
               url: data.image,
             },
+            description: '',
             color: COLOR,
             timestamp: message.createdAt.toISOString(),
           },
