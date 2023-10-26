@@ -11,7 +11,7 @@ aiHandler.command("ai", async (ctx) => {
   await ctx.replyWithChatAction("typing");
   const [channelName, channelId] = ctx.match.split(" ");
 
-  const channel = await prisma.discordSourceChannel.findFirst({
+  const channel = await prisma.discordTargetChannel.findFirst({
     where: {
       name: channelName,
     },
@@ -21,7 +21,7 @@ aiHandler.command("ai", async (ctx) => {
     return ctx.reply("Channel not found!");
   }
 
-  prisma.discordSourceChannel.update({
+  prisma.discordTargetChannel.update({
     where: {
       id: channel.id,
     },

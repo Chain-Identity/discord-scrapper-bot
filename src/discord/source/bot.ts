@@ -8,5 +8,9 @@ export const guildByIdMap = new Map<string, Discord.Guild>();
 
 export const channelByIdMap = new Map<string, Discord.Channel>();
 export const channelByNameMap = new Map<string, Discord.Channel>();
+export const feedByIdMap = new Map<string, Discord.Channel>();
+export const feedByNameMap = new Map<string, Discord.Channel>();
 
 export const activeChannelSet = new Set<string>();
+export const activeFeedSet = new Set<string>();
+

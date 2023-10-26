@@ -14,4 +14,5 @@ export const launchTargetDBot = async () => {
 
 export * from "./add-channel";
 export * from "./sync-channel";
+export * from './sync-from-feed';
 export * from "./message-q";

@@ -4,7 +4,13 @@ import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
 
 import { targetDBot } from "./bot";
-import { MessageType, ImageMessage, EmbedMessage, FieldType, MessageStatus } from "src/types/message";
+import {
+  MessageType,
+  ImageMessage,
+  EmbedMessage,
+  FieldType,
+  MessageStatus,
+} from "src/types/message";
 
 type Task = {
   messageId: string;
@@ -15,27 +21,74 @@ type Task = {
   | {
       targetChannelId: string;
     }
+  | {
+      feedId: string;
+    }
 );
 
-const COLOR = 0xAD1456
+const COLOR = 0xad1456;
+
+const getTargetChannel = async (task: Task) => {
+  if ("feedId" in task) {
+    const message = await prisma.discordSourceMessage.findUnique({
+      where: {
+        id: task.messageId,
+      },
+    });
+
+    const connector = await prisma.discordFeedConnector.findFirst({
+      where: {
+        name: message?.name!,
+        discordSourceFeedChannelId: task.feedId,
+      },
+    });
+
+    if(!connector?.discordTargetChannelId){
+      return null
+    }
+
+    return prisma.discordTargetChannel.findUnique({
+      where: {
+        id: connector?.discordTargetChannelId!,
+      },
+    });
+  }
+
+  if ("targetChannelId" in task) {
+    return prisma.discordTargetChannel.findUnique({
+      where: {
+        id: task.targetChannelId,
+      },
+    });
+  }
+
+  const sourceChannel = await prisma.discordSourceChannel.findUnique({
+    where: {
+      id: task.sourceChannelId,
+    },
+  });
+
+  if(!sourceChannel?.discordTargetChannelId){
+    return null;
+  }
+
+  return prisma.discordTargetChannel.findUnique({
+    where: {
+      id: sourceChannel?.discordTargetChannelId!,
+    },
+  });
+};
 
 export const messageQ = fastq.promise<void, Task, void>(async (task) => {
   try {
-    const sourceChannel = await prisma.discordSourceChannel.findUnique({
-      where:
-        "sourceChannelId" in task
-          ? {
-              id: task.sourceChannelId,
-            }
-          : {
-              discordTargetChannelId: task.targetChannelId,
-            },
-    });
-    if (!sourceChannel) {
+    const targetChannel = await getTargetChannel(task);
+
+    if (!targetChannel) {
       return;
     }
+
     const [channel, message] = await Promise.all([
-      targetDBot.channels.fetch(sourceChannel.discordTargetChannelId),
+      targetDBot.channels.fetch(targetChannel.id),
       prisma.discordSourceMessage.findUnique({
         where: {
           id: task.messageId,
@@ -47,13 +100,12 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
 
-    if(message.status === MessageStatus.sent){
-      return
+    if (message.status === MessageStatus.sent) {
+      return;
     }
 
-
-    if(message.type === MessageType.image){
-      const data: ImageMessage = JSON.parse(message.data)
+    if (message.type === MessageType.image) {
+      const data: ImageMessage = JSON.parse(message.data);
 
       const sendedMessage = await channel.send({
         embeds: [
@@ -61,7 +113,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
             image: {
               url: data.image,
             },
-            description: '',
+            description: "",
             color: COLOR,
             timestamp: message.createdAt.toISOString(),
           },
@@ -77,7 +129,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
           createdAt: new Date(sendedMessage.createdTimestamp),
         },
       });
-     
+
       await prisma.discordSourceMessage.update({
         where: {
           id: message.id,
@@ -90,8 +142,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
 
-    if(message.type === MessageType.embed){
-      const data: EmbedMessage = JSON.parse(message.data)
+    if (message.type === MessageType.embed) {
+      const data: EmbedMessage = JSON.parse(message.data);
 
       const sendedMessage = await channel.send({
         embeds: [
@@ -100,16 +152,21 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
               name: data.author,
               icon_url: data.authorIcon,
             },
-            fields: data.fields.map(field => ({
-              name: '',
-              value: field.type === FieldType.reply ? ('`' + field.content + '`') : field.content,
+            fields: data.fields.map((field) => ({
+              name: "",
+              value:
+                field.type === FieldType.reply
+                  ? "`" + field.content + "`"
+                  : field.content,
             })),
-            image: data.image ? {
-              url: data.image,
-            } : undefined,
+            image: data.image
+              ? {
+                  url: data.image,
+                }
+              : undefined,
             color: COLOR,
             timestamp: message.createdAt.toISOString(),
-          }
+          },
         ],
       });
 
@@ -122,7 +179,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
           createdAt: new Date(sendedMessage.createdTimestamp),
         },
       });
-     
+
       await prisma.discordSourceMessage.update({
         where: {
           id: message.id,
@@ -134,10 +191,9 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
 
       return;
     }
-
   } catch (e) {
     console.error(e);
-    notify('Error in sending message')
+    notify("Error in sending message");
     await prisma.discordSourceMessage.update({
       where: {
         id: task.messageId,

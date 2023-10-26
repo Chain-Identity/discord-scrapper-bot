@@ -23,7 +23,7 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
         data: {
           id: message.id,
           data: JSON.stringify({}),
-          type: MessageType.image,
+          type: MessageType.none,
           status: MessageStatus.error,
           discordSourceChannelId: channelId,
           createdAt: new Date(message.timestamp),
@@ -50,7 +50,6 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
 
     const data: EmbedMessage = {
       author: embed.author?.name || "",
-      // authorIcon: embed.author?.proxy_icon_url || embed.author?.icon_url || "",
       authorIcon: embed.author?.icon_url || "",
       image: embed.image?.proxy_url || embed.image?.url || null,
       fields: embed.fields?.map((field) => {

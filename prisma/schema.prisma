@@ -22,16 +22,19 @@ model Message {
 }
 
 model DiscordSourceMessage {
-  id                     String               @id
-  data                   String
-  type                   String
-  status                 String
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  discordSourceChannel   DiscordSourceChannel @relation(fields: [discordSourceChannelId], references: [id])
-  discordSourceChannelId String
-  message                Message?             @relation(fields: [messageId], references: [id])
-  messageId              String?              @unique
+  id                         String                    @id
+  name                       String?
+  data                       String
+  type                       String
+  status                     String
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+  message                    Message?                  @relation(fields: [messageId], references: [id])
+  messageId                  String?                   @unique
+  discordSourceChannel       DiscordSourceChannel?     @relation(fields: [discordSourceChannelId], references: [id])
+  discordSourceChannelId     String?
+  DiscordSourceFeedChannel   DiscordSourceFeedChannel? @relation(fields: [discordSourceFeedChannelId], references: [id])
+  discordSourceFeedChannelId String?
 }
 
 model DiscordTargetChannel {
@@ -39,8 +42,10 @@ model DiscordTargetChannel {
   name                 String
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
+  summaryChannelId     String?
   discordSourceChannel DiscordSourceChannel?
   messages             Message[]
+  DiscordFeedConnector DiscordFeedConnector?
 }
 
 model DiscordSourceChannel {
@@ -48,8 +53,27 @@ model DiscordSourceChannel {
   name                   String
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
-  summaryChannelId       String?
   discordTargetChannel   DiscordTargetChannel   @relation(fields: [discordTargetChannelId], references: [id])
   discordTargetChannelId String                 @unique
   discordSourceMessages  DiscordSourceMessage[]
+}
+
+model DiscordSourceFeedChannel {
+  id                    String                 @id
+  name                  String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  discordSourceMessages DiscordSourceMessage[]
+  DiscordFeedConnector  DiscordFeedConnector[]
+}
+
+model DiscordFeedConnector {
+  id                         Int                      @id @default(autoincrement())
+  name                       String
+  discordTargetChannel       DiscordTargetChannel     @relation(fields: [discordTargetChannelId], references: [id])
+  discordTargetChannelId     String                   @unique
+  discrodSourceFeed          DiscordSourceFeedChannel @relation(fields: [discordSourceFeedChannelId], references: [id])
+  discordSourceFeedChannelId String
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
 }

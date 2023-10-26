@@ -14,7 +14,7 @@ const openai = new OpenAI({
 });
 
 export const sendAllSummaries = async (now = new Date()) => {
-  const channels = await prisma.discordSourceChannel.findMany({
+  const channels = await prisma.discordTargetChannel.findMany({
     where: {
       summaryChannelId: {
         not: null,
@@ -30,21 +30,21 @@ export const sendAllSummaries = async (now = new Date()) => {
 };
 
 export const sendSummary = async (channelId: string, now: Date) => {
-  const sourceChannel = await prisma.discordSourceChannel.findUnique({
+  const targetChannel = await prisma.discordTargetChannel.findUnique({
     where: {
       id: channelId,
     },
   });
 
-  if (!sourceChannel || !sourceChannel.summaryChannelId) {
+  if (!targetChannel || !targetChannel.summaryChannelId) {
     return;
   }
 
   const previousDay = subDays(now, 1);
 
-  const messages = await prisma.discordSourceMessage.findMany({
+  const messages = await prisma.message.findMany({
     where: {
-      discordSourceChannelId: channelId,
+      discordTargetChannelId: channelId,
       type: MessageType.embed,
       createdAt: {
         gte: startOfDay(previousDay),
@@ -57,7 +57,7 @@ export const sendSummary = async (channelId: string, now: Date) => {
   });
 
   if (messages.length < 10) {
-    console.log("Not enough messages in " + sourceChannel.name, true);
+    console.log("Not enough messages in " + targetChannel.name, true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return;
   }
@@ -82,11 +82,11 @@ export const sendSummary = async (channelId: string, now: Date) => {
     .join("\n\n");
 
   try {
-    const targetChannel = await targetDBot.channels.fetch(
-      sourceChannel.summaryChannelId
+    const targetBotChannel = await targetDBot.channels.fetch(
+      targetChannel.summaryChannelId
     );
 
-    if (!targetChannel || !targetChannel.isTextBased()) {
+    if (!targetBotChannel || !targetBotChannel.isTextBased()) {
       notify("Target channel is not text based");
       return;
     }
@@ -110,12 +110,12 @@ export const sendSummary = async (channelId: string, now: Date) => {
       return;
     }
 
-    await targetChannel.send({
+    await targetBotChannel.send({
       embeds: [
         {
           description:
             `${channelMention(
-              sourceChannel.discordTargetChannelId
+              targetChannel.id
             )} summary for ${format(previousDay, "MM/dd/yyyy")}\n\n` + message,
           color: 0xad1456,
         },
@@ -123,13 +123,13 @@ export const sendSummary = async (channelId: string, now: Date) => {
     });
 
     notify(
-      `${sourceChannel.name} summary for ${format(
+      `${targetChannel.name} summary for ${format(
         previousDay,
         "MM/dd/yyyy"
       )}\n\n` + message
     );
   } catch (e) {
-    console.log("Error in sending summary " + sourceChannel.summaryChannelId)
+    console.log("Error in sending summary " + targetChannel.summaryChannelId)
     console.error(e);
   }
 

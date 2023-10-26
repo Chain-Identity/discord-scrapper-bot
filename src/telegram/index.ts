@@ -33,6 +33,14 @@ export const launchTgBot = async () => {
       command: "ai_ai_ai",
       description: "Send summary to summary channel",
     },
+    {
+      command: 'add_feed',
+      description: 'Add source feed channel'
+    },
+    {
+      command: 'add_feed_channel',
+      description: 'Add target feed channel'
+    },
   ]);
 
   console.log("Telegram bot started!");

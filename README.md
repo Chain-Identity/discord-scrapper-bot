@@ -29,7 +29,7 @@ cd discord-scrapper-bot
 
 Setup environment:
 ```bash
-cp .env.example .env
+cp example.env .env
 nano .env
 ```
 

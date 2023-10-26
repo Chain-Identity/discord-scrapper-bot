@@ -16,7 +16,7 @@ export const syncAllChannels = async () => {
         discordSourceChannelId: channel.id,
       },
       orderBy: {
-        createdAt: "desc",
+        updatedAt: "desc",
       },
     });
 
@@ -53,7 +53,10 @@ export const syncChannel = async (
 
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    await syncTargetChannel(channelId);
+    if(channel?.discordTargetChannelId){
+      await syncTargetChannel(channel.discordTargetChannelId);
+    }
+
 
     await new Promise((resolve) => setTimeout(resolve, 200));
   }

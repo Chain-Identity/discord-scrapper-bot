@@ -1,6 +1,7 @@
 export enum MessageType {
   embed = 'embed',
   image = 'image',
+  none = 'none',
 }
 
 export enum MessageStatus {
