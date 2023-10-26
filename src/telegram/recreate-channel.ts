@@ -97,7 +97,6 @@ recreateChannelHandler.command("recreate_channel", async (ctx) => {
         id: channel.id,
         name: channel.name!,
         discordTargetChannelId: newChannel.id,
-        summaryChannelId: savedSourceChannel.summaryChannelId,
       },
     });
 
@@ -107,7 +106,7 @@ recreateChannelHandler.command("recreate_channel", async (ctx) => {
 
   } catch (e) {
     console.error(e);
-    ctx.reply("Unknown error");
+    ctx.reply("Что-то сломалось(");
     return typeof e === "object" &&
       e &&
       "message" in e &&

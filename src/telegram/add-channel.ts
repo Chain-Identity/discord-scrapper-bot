@@ -11,7 +11,7 @@ export const addChannelHandler = new Composer<BotContext>();
 
 addChannelHandler.command("add_channel", async (ctx) => {
   try {
-    const channelName = ctx.match;
+    const [channelName, param] = ctx.match.split(" ");
 
     await ctx.replyWithChatAction("typing");
 
@@ -49,7 +49,7 @@ addChannelHandler.command("add_channel", async (ctx) => {
       },
     });
 
-    await syncChannel(channel.id);
+    await syncChannel(channel.id, undefined, param === 'short');
 
     return ctx.replyFmt(
       fmt`Channel ${bold("#" + targetName)} (${newChannel.id}) added!`

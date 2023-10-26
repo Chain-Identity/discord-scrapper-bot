@@ -28,9 +28,10 @@ export const syncAllChannels = async () => {
 
 export const syncChannel = async (
   channelId: string,
-  lastSavedMessageId?: string
+  lastSavedMessageId?: string,
+  short?: boolean,
 ) => {
-  const messages = await getMessages({ channelId, lastSavedMessageId });
+  const messages = await getMessages({ channelId, lastSavedMessageId, short });
 
   for (const message of messages) {
     await saveMessage(message, channelId);

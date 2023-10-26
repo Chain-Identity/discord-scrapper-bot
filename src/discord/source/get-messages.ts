@@ -5,11 +5,13 @@ import { sourceDBot } from "./bot";
 interface GetMessagesProps {
   channelId: string;
   lastSavedMessageId?: string;
+  short?: boolean;
 }
 
 export const getMessages = async ({
   channelId,
   lastSavedMessageId,
+  short,
 }: GetMessagesProps) => {
   const result: APIMessage[] = [];
 
@@ -40,7 +42,7 @@ export const getMessages = async ({
 
     result.push(...resultList.reverse());
 
-    if (messages.length < 50 || messages.length !== resultList.length) {
+    if (messages.length < 50 || messages.length !== resultList.length || short) {
       break;
     }
 

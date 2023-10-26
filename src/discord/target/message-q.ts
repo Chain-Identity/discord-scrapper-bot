@@ -8,6 +8,7 @@ import {
   MessageType,
   ImageMessage,
   EmbedMessage,
+  EmbedWithUrlMessage,
   FieldType,
   MessageStatus,
 } from "src/types/message";
@@ -174,7 +175,47 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         data: {
           id: sendedMessage.id,
           data: message.data,
-          type: MessageType.image,
+          type: MessageType.embed,
+          discordTargetChannelId: channel.id,
+          createdAt: new Date(sendedMessage.createdTimestamp),
+        },
+      });
+
+      await prisma.discordSourceMessage.update({
+        where: {
+          id: message.id,
+        },
+        data: {
+          status: MessageStatus.sent,
+        },
+      });
+
+      return;
+    }
+
+    if (message.type === MessageType.embedWithUrl) {
+      const data: EmbedWithUrlMessage = JSON.parse(message.data);
+
+      const sendedMessage = await channel.send({
+        embeds: [
+          {
+            title: data.title,
+            url: data.url,
+            description: data.description,
+            thumbnail: data.thumbnail ? {
+              url: data.thumbnail,
+            } : undefined,
+            fields: data.fields,
+            color: COLOR,
+          },
+        ],
+      });
+
+      await prisma.message.create({
+        data: {
+          id: sendedMessage.id,
+          data: message.data,
+          type: MessageType.embedWithUrl,
           discordTargetChannelId: channel.id,
           createdAt: new Date(sendedMessage.createdTimestamp),
         },
@@ -193,7 +234,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
     }
   } catch (e) {
     console.error(e);
-    notify("Error in sending message");
+    const targetChannel = await getTargetChannel(task).catch(() => null);
+    notify("Error in sending message " + targetChannel?.name || "");
     await prisma.discordSourceMessage.update({
       where: {
         id: task.messageId,

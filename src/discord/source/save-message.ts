@@ -3,7 +3,7 @@ import '@total-typescript/ts-reset/filter-boolean'
 
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
-import { MessageStatus, MessageType, EmbedMessage, FieldType } from "src/types/message";
+import { MessageStatus, MessageType, EmbedMessage, FieldType, EmbedWithUrlMessage } from "src/types/message";
 
 import { getChannelById } from "./get-channel";
 
@@ -47,6 +47,34 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       });
       return;
     }
+
+    if(embed.title && embed.url) {
+      const data: EmbedWithUrlMessage = {
+        title: embed.title,
+        url: embed.url,
+        thumbnail: embed.thumbnail?.proxy_url || embed.thumbnail?.url || undefined,
+        description: embed.description,
+        fields: embed.fields?.map((field) => ({
+          name: field.name,
+          value: field.value,
+          inline: field.inline || false,
+        })) || [],
+      }
+
+      await prisma.discordSourceMessage.create({
+        data: {
+          id: message.id,
+          data: JSON.stringify(data),
+          type: MessageType.embedWithUrl,
+          status: MessageStatus.new,
+          discordSourceChannelId: channelId,
+          createdAt: new Date(embed.timestamp || message.timestamp),
+        },
+      });
+
+      return;
+    }
+
 
     const data: EmbedMessage = {
       author: embed.author?.name || "",

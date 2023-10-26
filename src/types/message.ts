@@ -1,5 +1,6 @@
 export enum MessageType {
   embed = 'embed',
+  embedWithUrl = 'embedWithUrl',
   image = 'image',
   none = 'none',
 }
@@ -25,6 +26,20 @@ export type EmbedMessage = {
   authorIcon: string;
   image: string | null;
   fields: Field[];
+}
+
+export type EmbedWithUrlField = {
+  name: string;
+  value: string;
+  inline: boolean;
+}
+
+export type EmbedWithUrlMessage = {
+  title: string;
+  url: string;
+  thumbnail?: string;
+  description?: string;
+  fields: EmbedWithUrlField[];
 }
 
 export type ImageMessage = {
