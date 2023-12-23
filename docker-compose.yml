@@ -1,6 +1,6 @@
 services:
   discord-scrapper-bot:
-    container_name: discord-scrapper-bot
+    container_name: ${COMPOSE_PROJECT_NAME}
     build:
       context: .
       dockerfile: ./Dockerfile
