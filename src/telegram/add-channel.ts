@@ -1,7 +1,12 @@
 import { Composer } from "grammy";
 import { fmt, bold } from "@grammyjs/parse-mode";
 
-import { getChannelByName, getFeedByName, syncChannel, syncFeedChannel } from "src/discord/source";
+import {
+  getChannelById,
+  getFeedByName,
+  syncChannel,
+  syncFeedChannel,
+} from "src/discord/source";
 import { addChannel, syncTargetChannelFromFeed } from "src/discord/target";
 import { prisma } from "src/prisma";
 
@@ -11,11 +16,11 @@ export const addChannelHandler = new Composer<BotContext>();
 
 addChannelHandler.command("add_channel", async (ctx) => {
   try {
-    const [channelName, param] = ctx.match.split(" ");
+    const [id, param] = ctx.match.split(" ");
 
     await ctx.replyWithChatAction("typing");
 
-    const channel = getChannelByName(channelName);
+    const channel = getChannelById(id);
 
     if (!channel) {
       return ctx.reply("Channel not found!");
@@ -49,7 +54,11 @@ addChannelHandler.command("add_channel", async (ctx) => {
       },
     });
 
-    await syncChannel(channel.id, undefined, param === 'short');
+    await syncChannel({
+      channelId: channel.id,
+      short: param === "short",
+      lastNDays: Number.parseInt(param) || undefined,
+    });
 
     return ctx.replyFmt(
       fmt`Channel ${bold("#" + targetName)} (${newChannel.id}) added!`
@@ -57,11 +66,13 @@ addChannelHandler.command("add_channel", async (ctx) => {
   } catch (e) {
     console.error(e);
     ctx.reply("Unknown error!");
-    return typeof e === "object" &&
+    return (
+      typeof e === "object" &&
       e &&
       "message" in e &&
       typeof e.message === "string" &&
-      ctx.reply(e.message);
+      ctx.reply(e.message)
+    );
   }
 });
 
@@ -85,9 +96,7 @@ addChannelHandler.command("add_feed", async (ctx) => {
 
     if (savedChannel) {
       return ctx.replyFmt(
-        fmt`Feed ${bold(savedChannel.name)} (${
-          savedChannel.id
-        }) already added!`
+        fmt`Feed ${bold(savedChannel.name)} (${savedChannel.id}) already added!`
       );
     }
 
@@ -106,14 +115,15 @@ addChannelHandler.command("add_feed", async (ctx) => {
   } catch (e) {
     console.error(e);
     ctx.reply("Unknown error!");
-    return typeof e === "object" &&
+    return (
+      typeof e === "object" &&
       e &&
       "message" in e &&
       typeof e.message === "string" &&
-      ctx.reply(e.message);
+      ctx.reply(e.message)
+    );
   }
 });
-
 
 addChannelHandler.command("add_feed_channel", async (ctx) => {
   try {
@@ -168,10 +178,12 @@ addChannelHandler.command("add_feed_channel", async (ctx) => {
   } catch (e) {
     console.error(e);
     ctx.reply("Unknown error!");
-    return typeof e === "object" &&
+    return (
+      typeof e === "object" &&
       e &&
       "message" in e &&
       typeof e.message === "string" &&
-      ctx.reply(e.message);
+      ctx.reply(e.message)
+    );
   }
 });

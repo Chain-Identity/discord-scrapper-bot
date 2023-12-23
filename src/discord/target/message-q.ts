@@ -7,11 +7,12 @@ import { targetDBot } from "./bot";
 import {
   MessageType,
   ImageMessage,
-  EmbedMessage,
+  CommonMessage,
   EmbedWithUrlMessage,
   FieldType,
   MessageStatus,
 } from "src/types/message";
+import { Attachment } from "discord.js";
 
 type Task = {
   messageId: string;
@@ -44,8 +45,8 @@ const getTargetChannel = async (task: Task) => {
       },
     });
 
-    if(!connector?.discordTargetChannelId){
-      return null
+    if (!connector?.discordTargetChannelId) {
+      return null;
     }
 
     return prisma.discordTargetChannel.findUnique({
@@ -69,7 +70,7 @@ const getTargetChannel = async (task: Task) => {
     },
   });
 
-  if(!sourceChannel?.discordTargetChannelId){
+  if (!sourceChannel?.discordTargetChannelId) {
     return null;
   }
 
@@ -105,117 +106,31 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
 
-    if (message.type === MessageType.image) {
-      const data: ImageMessage = JSON.parse(message.data);
+    if (message.type === MessageType.common) {
+      const data: CommonMessage = JSON.parse(message.data);
+
+      let content = data.content.replace(
+        /(?:__|[*#])|\[(.*?)\]\(.*?\)/gm,
+        "$1"
+      );
 
       const sendedMessage = await channel.send({
-        embeds: [
-          {
-            image: {
-              url: data.image,
-            },
-            description: "",
-            color: COLOR,
-            timestamp: message.createdAt.toISOString(),
-          },
-        ],
+        content,
+        embeds: data.attachments.length
+          ? data.attachments.map((attachment) => ({
+              image: {
+                url: attachment.proxy_url,
+              },
+              description: "",
+            }))
+          : undefined,
       });
 
       await prisma.message.create({
         data: {
           id: sendedMessage.id,
           data: message.data,
-          type: MessageType.image,
-          discordTargetChannelId: channel.id,
-          createdAt: new Date(sendedMessage.createdTimestamp),
-        },
-      });
-
-      await prisma.discordSourceMessage.update({
-        where: {
-          id: message.id,
-        },
-        data: {
-          status: MessageStatus.sent,
-        },
-      });
-
-      return;
-    }
-
-    if (message.type === MessageType.embed) {
-      const data: EmbedMessage = JSON.parse(message.data);
-
-      const sendedMessage = await channel.send({
-        embeds: [
-          {
-            author: {
-              name: data.author,
-              icon_url: data.authorIcon,
-            },
-            fields: data.fields.map((field) => ({
-              name: "",
-              value:
-                field.type === FieldType.reply
-                  ? "`" + field.content + "`"
-                  : field.content,
-            })),
-            image: data.image
-              ? {
-                  url: data.image,
-                }
-              : undefined,
-            color: COLOR,
-            timestamp: message.createdAt.toISOString(),
-          },
-        ],
-      });
-
-      await prisma.message.create({
-        data: {
-          id: sendedMessage.id,
-          data: message.data,
-          type: MessageType.embed,
-          discordTargetChannelId: channel.id,
-          createdAt: new Date(sendedMessage.createdTimestamp),
-        },
-      });
-
-      await prisma.discordSourceMessage.update({
-        where: {
-          id: message.id,
-        },
-        data: {
-          status: MessageStatus.sent,
-        },
-      });
-
-      return;
-    }
-
-    if (message.type === MessageType.embedWithUrl) {
-      const data: EmbedWithUrlMessage = JSON.parse(message.data);
-
-      const sendedMessage = await channel.send({
-        embeds: [
-          {
-            title: data.title,
-            url: data.url,
-            description: data.description,
-            thumbnail: data.thumbnail ? {
-              url: data.thumbnail,
-            } : undefined,
-            fields: data.fields,
-            color: COLOR,
-          },
-        ],
-      });
-
-      await prisma.message.create({
-        data: {
-          id: sendedMessage.id,
-          data: message.data,
-          type: MessageType.embedWithUrl,
+          type: MessageType.common,
           discordTargetChannelId: channel.id,
           createdAt: new Date(sendedMessage.createdTimestamp),
         },

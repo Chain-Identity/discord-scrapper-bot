@@ -6,13 +6,14 @@ import { notify } from "src/telegram";
 import {
   MessageStatus,
   MessageType,
-  EmbedMessage,
+  CommonMessage,
   FieldType,
 } from "src/types/message";
 
 import { getChannelById } from "./get-channel";
 
 export const saveFeedMessage = async (message: APIMessage, feedId: string) => {
+  /*
   try {
     if (
       await prisma.discordSourceMessage.findUnique({
@@ -45,7 +46,7 @@ export const saveFeedMessage = async (message: APIMessage, feedId: string) => {
     }
     const embed = message.embeds[0];
 
-    const data: EmbedMessage = {
+    const data: CommonMessage = {
       author: embed.author?.name || "",
       authorIcon: embed.author?.icon_url || "",
       image: embed.image?.proxy_url || embed.image?.url || null,
@@ -82,4 +83,5 @@ export const saveFeedMessage = async (message: APIMessage, feedId: string) => {
   } catch (e) {
     console.error(e);
   }
+  */
 };

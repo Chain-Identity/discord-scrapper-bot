@@ -20,18 +20,34 @@ export const syncAllChannels = async () => {
       },
     });
 
-    await syncChannel(channel.id, lastMessage?.id || undefined);
+    await syncChannel({
+      channelId: channel.id,
+      lastSavedMessageId: lastMessage?.id || undefined,
+    });
 
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
 };
 
-export const syncChannel = async (
-  channelId: string,
-  lastSavedMessageId?: string,
-  short?: boolean,
-) => {
-  const messages = await getMessages({ channelId, lastSavedMessageId, short });
+interface IProps {
+  channelId: string;
+  lastSavedMessageId?: string;
+  short?: boolean;
+  lastNDays?: number;
+}
+
+export const syncChannel = async ({
+  channelId,
+  lastSavedMessageId,
+  short,
+  lastNDays,
+}: IProps) => {
+  const messages = await getMessages({
+    channelId,
+    lastSavedMessageId,
+    short,
+    lastNDays,
+  });
 
   for (const message of messages) {
     await saveMessage(message, channelId);
@@ -54,10 +70,9 @@ export const syncChannel = async (
 
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    if(channel?.discordTargetChannelId){
+    if (channel?.discordTargetChannelId) {
       await syncTargetChannel(channel.discordTargetChannelId);
     }
-
 
     await new Promise((resolve) => setTimeout(resolve, 200));
   }

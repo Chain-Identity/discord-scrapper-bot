@@ -7,7 +7,7 @@ import { prisma } from "src/prisma";
 import { notify } from "src/telegram/notify";
 
 import { targetDBot } from "./bot";
-import { EmbedMessage, MessageType } from "src/types/message";
+import { CommonMessage, MessageType } from "src/types/message";
 
 const openai = new OpenAI({
   apiKey: OPENAI_TOKEN,
@@ -30,6 +30,7 @@ export const sendAllSummaries = async (now = new Date()) => {
 };
 
 export const sendSummary = async (channelId: string, now: Date) => {
+  /*
   const targetChannel = await prisma.discordTargetChannel.findUnique({
     where: {
       id: channelId,
@@ -64,7 +65,7 @@ export const sendSummary = async (channelId: string, now: Date) => {
 
   const prompt = messages
     .map((message) => {
-      const data: EmbedMessage = JSON.parse(message.data);
+      const data: CommonMessage = JSON.parse(message.data);
       const quote = data.fields
         .filter((field) => field.type === "reply")
         .map((x) => x.content)
@@ -114,9 +115,10 @@ export const sendSummary = async (channelId: string, now: Date) => {
       embeds: [
         {
           description:
-            `${channelMention(
-              targetChannel.id
-            )} summary for ${format(previousDay, "MM/dd/yyyy")}\n\n` + message,
+            `${channelMention(targetChannel.id)} summary for ${format(
+              previousDay,
+              "MM/dd/yyyy"
+            )}\n\n` + message,
           color: 0xad1456,
         },
       ],
@@ -129,9 +131,10 @@ export const sendSummary = async (channelId: string, now: Date) => {
       )}\n\n` + message
     );
   } catch (e) {
-    console.log("Error in sending summary " + targetChannel.summaryChannelId)
+    console.log("Error in sending summary " + targetChannel.summaryChannelId);
     console.error(e);
   }
 
+  */
   await new Promise((resolve) => setTimeout(resolve, 1000));
 };
