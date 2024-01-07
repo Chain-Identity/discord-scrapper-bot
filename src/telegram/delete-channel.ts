@@ -1,6 +1,6 @@
 import { Composer } from "grammy";
 
-import { getChannelByName } from "src/discord/source";
+import { getChannelById } from "src/discord/source";
 import { activeChannelSet } from "src/discord/source/bot";
 import { prisma } from "src/prisma";
 
@@ -10,12 +10,11 @@ export const deleteChannelHandler = new Composer<BotContext>();
 
 deleteChannelHandler.command("delete_channel", async (ctx) => {
   try {
-    const channelName = ctx.match;
+    const channelId = ctx.match;
 
     await ctx.replyWithChatAction("typing");
 
-    const channel = getChannelByName(channelName);
-
+    const channel = getChannelById(channelId);
 
     if (!channel) {
       return ctx.reply("Channel not found!");
@@ -33,13 +32,11 @@ deleteChannelHandler.command("delete_channel", async (ctx) => {
       return ctx.reply("Channel not found!");
     }
 
-
     const savedTargetChannel = await prisma.discordTargetChannel.findUnique({
       where: {
         id: savedSourceChannel.discordTargetChannelId,
       },
     });
-
 
     if (!savedTargetChannel) {
       return ctx.reply("Channel not found!");
@@ -48,13 +45,13 @@ deleteChannelHandler.command("delete_channel", async (ctx) => {
     const messages = await prisma.message.findMany({
       where: {
         discordTargetChannelId: savedTargetChannel.id,
-      }
+      },
     });
 
     await prisma.message.deleteMany({
       where: {
         id: {
-          in: messages.map(message => message.id),
+          in: messages.map((message) => message.id),
         },
       },
     });
@@ -68,7 +65,7 @@ deleteChannelHandler.command("delete_channel", async (ctx) => {
     await prisma.discordSourceMessage.deleteMany({
       where: {
         id: {
-          in: sourceMessages.map(message => message.id),
+          in: sourceMessages.map((message) => message.id),
         },
       },
     });
@@ -86,14 +83,15 @@ deleteChannelHandler.command("delete_channel", async (ctx) => {
     });
 
     return ctx.reply("Channel deleted!");
-
   } catch (e) {
     console.error(e);
     ctx.reply("Unknown Error");
-    return typeof e === "object" &&
+    return (
+      typeof e === "object" &&
       e &&
       "message" in e &&
       typeof e.message === "string" &&
-      ctx.reply(e.message);
+      ctx.reply(e.message)
+    );
   }
 });

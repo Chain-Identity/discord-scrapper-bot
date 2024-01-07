@@ -1,4 +1,4 @@
-import { APIMessage } from "discord-api-types/v8";
+import { APIMessage } from "discord-api-types/v9";
 import { subDays } from "date-fns/subDays";
 import { isBefore } from "date-fns/isBefore";
 

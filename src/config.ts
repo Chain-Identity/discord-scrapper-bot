@@ -11,7 +11,6 @@ export const SOURCE_ACCOUNT_TOKEN = env.SOURCE_ACCOUNT_TOKEN!;
 export const SOURCE_GUILD_ID = env.SOURCE_GUILD_ID!;
 export const SOURCE_FEED_GUILD_ID = env.SOURCE_FEED_GUILD_ID!;
 
-export const TARGET_BOT_TOKEN = env.TARGET_BOT_TOKEN!;
 export const TARGET_GUILD_ID = env.TARGET_GUILD_ID!;
 export const TARGET_GROUP_ID = env.TARGET_GROUP_ID!;
 

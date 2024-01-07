@@ -3,7 +3,7 @@ import fastq from "fastq";
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
 
-import { targetDBot } from "./bot";
+import { getBot } from "./bot";
 import {
   MessageType,
   ImageMessage,
@@ -53,6 +53,9 @@ const getTargetChannel = async (task: Task) => {
       where: {
         id: connector?.discordTargetChannelId!,
       },
+      include: {
+        DiscordTargetBot: true,
+      },
     });
   }
 
@@ -60,6 +63,9 @@ const getTargetChannel = async (task: Task) => {
     return prisma.discordTargetChannel.findUnique({
       where: {
         id: task.targetChannelId,
+      },
+      include: {
+        DiscordTargetBot: true,
       },
     });
   }
@@ -78,6 +84,9 @@ const getTargetChannel = async (task: Task) => {
     where: {
       id: sourceChannel?.discordTargetChannelId!,
     },
+    include: {
+      DiscordTargetBot: true,
+    },
   });
 };
 
@@ -89,8 +98,14 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
 
+    const targetBot = getBot(targetChannel.DiscordTargetBot?.name);
+
+    if (!targetBot) {
+      return;
+    }
+
     const [channel, message] = await Promise.all([
-      targetDBot.channels.fetch(targetChannel.id),
+      targetBot.channels.fetch(targetChannel.id),
       prisma.discordSourceMessage.findUnique({
         where: {
           id: task.messageId,
@@ -109,10 +124,9 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
     if (message.type === MessageType.common) {
       const data: CommonMessage = JSON.parse(message.data);
 
-      let content = data.content.replace(
-        /(?:__|[*#])|\[(.*?)\]\(.*?\)/gm,
-        "$1"
-      );
+      let content = data.content
+        .replace(/(?:__|[*#])|\[(.*?)\]\(.*discord\.com.*?\)/gm, "$1")
+        .replace(/(\|\|.*\|\|)/gm, "");
 
       const sendedMessage = await channel.send({
         content,

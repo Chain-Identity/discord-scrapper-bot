@@ -1,4 +1,4 @@
-import { APIMessage } from "discord-api-types/v8";
+import { APIMessage } from "discord-api-types/v9";
 import "@total-typescript/ts-reset/filter-boolean";
 
 import { prisma } from "src/prisma";

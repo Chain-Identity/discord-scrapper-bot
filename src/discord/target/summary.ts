@@ -6,7 +6,6 @@ import { OPENAI_TOKEN } from "src/config";
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram/notify";
 
-import { targetDBot } from "./bot";
 import { CommonMessage, MessageType } from "src/types/message";
 
 const openai = new OpenAI({

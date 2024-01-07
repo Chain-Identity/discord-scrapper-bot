@@ -10,6 +10,10 @@ export const launchTgBot = async () => {
       description: "Add new channel",
     },
     {
+      command: "add_bot",
+      description: "Add new bot",
+    },
+    {
       command: "delete_channel",
       description: "Delete channel",
     },
@@ -34,12 +38,12 @@ export const launchTgBot = async () => {
       description: "Send summary to summary channel",
     },
     {
-      command: 'add_feed',
-      description: 'Add source feed channel'
+      command: "add_feed",
+      description: "Add source feed channel",
     },
     {
-      command: 'add_feed_channel',
-      description: 'Add target feed channel'
+      command: "add_feed_channel",
+      description: "Add target feed channel",
     },
   ]);
 

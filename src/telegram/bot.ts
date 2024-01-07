@@ -7,15 +7,15 @@ import type { BotContext } from "./types";
 
 import { addChannelHandler } from "./add-channel";
 import { deleteChannelHandler } from "./delete-channel";
-import { recreateChannelHandler } from './recreate-channel'
-import { statusHandler } from './status'
-import { lastMessagesHandler } from './last-messages'
-import { aiHandler } from './ai'
+import { recreateChannelHandler } from "./recreate-channel";
+import { statusHandler } from "./status";
+import { lastMessagesHandler } from "./last-messages";
+import { aiHandler } from "./ai";
+import { addBotHandler } from "./add-bot";
 
 export const tgBot = new Bot<BotContext>(TG_TOKEN);
 
 tgBot.use(hydrateReply);
-
 
 const chatId = Number.parseInt(TG_CHAT_ID);
 
@@ -24,7 +24,8 @@ tgBot.filter((x) => x.chat?.id === chatId).use(deleteChannelHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(recreateChannelHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(statusHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(lastMessagesHandler);
-tgBot.filter((x) => x.chat?.id === chatId).use(aiHandler)
+tgBot.filter((x) => x.chat?.id === chatId).use(aiHandler);
+tgBot.filter((x) => x.chat?.id === chatId).use(addBotHandler);
 
 tgBot.catch((err) => {
   const ctx = err.ctx;

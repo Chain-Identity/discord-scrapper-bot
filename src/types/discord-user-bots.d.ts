@@ -5,7 +5,7 @@ declare module "discord-user-bots" {
     APIGuild,
     APIMessageComponentInteraction,
     APIUser,
-  } from "discord-api-types/v8";
+  } from "discord-api-types/v9";
 
   export class Client {
     constructor(token: string);

@@ -38,14 +38,17 @@ model DiscordSourceMessage {
 }
 
 model DiscordTargetChannel {
-  id                   String                @id
-  name                 String
+  id   String @id
+  name String
+
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   summaryChannelId     String?
   discordSourceChannel DiscordSourceChannel?
   messages             Message[]
   DiscordFeedConnector DiscordFeedConnector?
+  DiscordTargetBot     DiscordTargetBot      @relation(fields: [discordTargetBotId], references: [id])
+  discordTargetBotId   Int
 }
 
 model DiscordSourceChannel {
@@ -76,4 +79,11 @@ model DiscordFeedConnector {
   discordSourceFeedChannelId String
   createdAt                  DateTime                 @default(now())
   updatedAt                  DateTime                 @updatedAt
+}
+
+model DiscordTargetBot {
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  token                String
+  DiscordTargetChannel DiscordTargetChannel[]
 }

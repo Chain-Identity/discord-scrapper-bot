@@ -1,15 +1,21 @@
-import { TARGET_BOT_TOKEN } from "src/config";
+import { prisma } from "src/prisma";
 
-import { targetDBot } from "./bot";
-
+import { initBot } from "./bot";
 import { init } from "./init";
 
 export const launchTargetDBot = async () => {
   try {
-    console.log("launch target bot " + TARGET_BOT_TOKEN);
-    await targetDBot.login(TARGET_BOT_TOKEN);
+    console.log("launch target bots");
 
-    console.log("Discord Target bot started!");
+    const botList = await prisma.discordTargetBot.findMany();
+
+    for (const bot of botList) {
+      await initBot(bot.name);
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    console.log("Discord Target bots started!");
 
     init();
   } catch (e) {

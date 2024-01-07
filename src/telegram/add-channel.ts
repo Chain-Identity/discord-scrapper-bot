@@ -16,7 +16,7 @@ export const addChannelHandler = new Composer<BotContext>();
 
 addChannelHandler.command("add_channel", async (ctx) => {
   try {
-    const [id, param] = ctx.match.split(" ");
+    const [id, param, param2] = ctx.match.split(" ");
 
     await ctx.replyWithChatAction("typing");
 
@@ -44,7 +44,12 @@ addChannelHandler.command("add_channel", async (ctx) => {
 
     const newChannel = await addChannel({
       name: targetName,
+      targetBotName: param2,
     });
+
+    if (!newChannel) {
+      return ctx.replyFmt(fmt`Channel ${bold("#" + targetName)} not added`);
+    }
 
     await prisma.discordSourceChannel.create({
       data: {
@@ -76,114 +81,114 @@ addChannelHandler.command("add_channel", async (ctx) => {
   }
 });
 
-addChannelHandler.command("add_feed", async (ctx) => {
-  try {
-    const feedName = ctx.match;
+// addChannelHandler.command("add_feed", async (ctx) => {
+//   try {
+//     const feedName = ctx.match;
 
-    await ctx.replyWithChatAction("typing");
+//     await ctx.replyWithChatAction("typing");
 
-    const feedChannel = getFeedByName(feedName);
+//     const feedChannel = getFeedByName(feedName);
 
-    if (!feedChannel) {
-      return ctx.reply("Channel not found!");
-    }
+//     if (!feedChannel) {
+//       return ctx.reply("Channel not found!");
+//     }
 
-    const savedChannel = await prisma.discordSourceFeedChannel.findFirst({
-      where: {
-        id: feedChannel.id,
-      },
-    });
+//     const savedChannel = await prisma.discordSourceFeedChannel.findFirst({
+//       where: {
+//         id: feedChannel.id,
+//       },
+//     });
 
-    if (savedChannel) {
-      return ctx.replyFmt(
-        fmt`Feed ${bold(savedChannel.name)} (${savedChannel.id}) already added!`
-      );
-    }
+//     if (savedChannel) {
+//       return ctx.replyFmt(
+//         fmt`Feed ${bold(savedChannel.name)} (${savedChannel.id}) already added!`
+//       );
+//     }
 
-    await prisma.discordSourceFeedChannel.create({
-      data: {
-        id: feedChannel.id,
-        name: feedChannel.name!,
-      },
-    });
+//     await prisma.discordSourceFeedChannel.create({
+//       data: {
+//         id: feedChannel.id,
+//         name: feedChannel.name!,
+//       },
+//     });
 
-    await syncFeedChannel(feedChannel.id);
+//     await syncFeedChannel(feedChannel.id);
 
-    return ctx.replyFmt(
-      fmt`Feed ${bold("#" + feedChannel.name!)} (${feedChannel.id}) added!`
-    );
-  } catch (e) {
-    console.error(e);
-    ctx.reply("Unknown error!");
-    return (
-      typeof e === "object" &&
-      e &&
-      "message" in e &&
-      typeof e.message === "string" &&
-      ctx.reply(e.message)
-    );
-  }
-});
+//     return ctx.replyFmt(
+//       fmt`Feed ${bold("#" + feedChannel.name!)} (${feedChannel.id}) added!`
+//     );
+//   } catch (e) {
+//     console.error(e);
+//     ctx.reply("Unknown error!");
+//     return (
+//       typeof e === "object" &&
+//       e &&
+//       "message" in e &&
+//       typeof e.message === "string" &&
+//       ctx.reply(e.message)
+//     );
+//   }
+// });
 
-addChannelHandler.command("add_feed_channel", async (ctx) => {
-  try {
-    const [feedName, channelName, ...nameList] = ctx.match.split(" ");
-    const name = nameList.join(" ");
+// addChannelHandler.command("add_feed_channel", async (ctx) => {
+//   try {
+//     const [feedName, channelName, ...nameList] = ctx.match.split(" ");
+//     const name = nameList.join(" ");
 
-    await ctx.replyWithChatAction("typing");
+//     await ctx.replyWithChatAction("typing");
 
-    const feedChannel = getFeedByName(feedName);
+//     const feedChannel = getFeedByName(feedName);
 
-    if (!feedChannel) {
-      return ctx.reply("Channel not found!");
-    }
+//     if (!feedChannel) {
+//       return ctx.reply("Channel not found!");
+//     }
 
-    const feedSourceChannel = await prisma.discordSourceFeedChannel.findFirst({
-      where: {
-        id: feedChannel.id,
-      },
-    });
+//     const feedSourceChannel = await prisma.discordSourceFeedChannel.findFirst({
+//       where: {
+//         id: feedChannel.id,
+//       },
+//     });
 
-    if (!feedSourceChannel) {
-      return ctx.reply("Feed not found!");
-    }
+//     if (!feedSourceChannel) {
+//       return ctx.reply("Feed not found!");
+//     }
 
-    const message = await prisma.discordSourceMessage.findFirst({
-      where: {
-        name: name,
-      },
-    });
+//     const message = await prisma.discordSourceMessage.findFirst({
+//       where: {
+//         name: name,
+//       },
+//     });
 
-    if (!message) {
-      return ctx.reply(`Message with name "${name}" not found!`);
-    }
+//     if (!message) {
+//       return ctx.reply(`Message with name "${name}" not found!`);
+//     }
 
-    const newChannel = await addChannel({
-      name: channelName,
-    });
+//     const newChannel = await addChannel({
+//       name: channelName,
+//     });
 
-    const connector = await prisma.discordFeedConnector.create({
-      data: {
-        discordSourceFeedChannelId: feedSourceChannel.id,
-        discordTargetChannelId: newChannel.id,
-        name: name,
-      },
-    });
+//     const connector = await prisma.discordFeedConnector.create({
+//       data: {
+//         discordSourceFeedChannelId: feedSourceChannel.id,
+//         discordTargetChannelId: newChannel.id,
+//         name: name,
+//       },
+//     });
 
-    await syncTargetChannelFromFeed(connector.id);
+//     await syncTargetChannelFromFeed(connector.id);
 
-    return ctx.replyFmt(
-      fmt`In feed ${bold(feedChannel.name!)} added channel ${bold(name)}!`
-    );
-  } catch (e) {
-    console.error(e);
-    ctx.reply("Unknown error!");
-    return (
-      typeof e === "object" &&
-      e &&
-      "message" in e &&
-      typeof e.message === "string" &&
-      ctx.reply(e.message)
-    );
-  }
-});
+//     return ctx.replyFmt(
+//       fmt`In feed ${bold(feedChannel.name!)} added channel ${bold(name)}!`
+//     );
+//   } catch (e) {
+//     console.error(e);
+//     ctx.reply("Unknown error!");
+//     return (
+//       typeof e === "object" &&
+//       e &&
+//       "message" in e &&
+//       typeof e.message === "string" &&
+//       ctx.reply(e.message)
+//     );
+//   }
+// });
