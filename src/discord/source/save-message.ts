@@ -21,7 +21,11 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       return;
     }
 
-    if (!message.author.bot || blackList.has(message.author.id)) {
+    if (
+      !message.author.bot ||
+      blackList.has(message.author.id) ||
+      blackList.has(message.author.username)
+    ) {
       return;
     }
 
