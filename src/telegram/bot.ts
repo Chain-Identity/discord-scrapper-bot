@@ -12,6 +12,7 @@ import { statusHandler } from "./status";
 import { lastMessagesHandler } from "./last-messages";
 import { aiHandler } from "./ai";
 import { addBotHandler } from "./add-bot";
+import { blackListHandler } from "./black-list";
 
 export const tgBot = new Bot<BotContext>(TG_TOKEN);
 
@@ -26,6 +27,7 @@ tgBot.filter((x) => x.chat?.id === chatId).use(statusHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(lastMessagesHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(aiHandler);
 tgBot.filter((x) => x.chat?.id === chatId).use(addBotHandler);
+tgBot.filter((x) => x.chat?.id === chatId).use(blackListHandler);
 
 tgBot.catch((err) => {
   const ctx = err.ctx;

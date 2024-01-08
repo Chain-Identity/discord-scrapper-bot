@@ -128,6 +128,21 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         .replace(/(?:__|[*#])|\[(.*?)\]\(.*discord\.com.*?\)/gm, "$1")
         .replace(/(\|\|.*\|\|)/gm, "");
 
+      if (content.length < 5 && data.attachments.length === 0) {
+        notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
+        console.log(message);
+        await prisma.discordSourceMessage.update({
+          where: {
+            id: task.messageId,
+          },
+          data: {
+            status: MessageStatus.error,
+          },
+        });
+
+        return;
+      }
+
       const sendedMessage = await channel.send({
         content,
         embeds: data.attachments.length

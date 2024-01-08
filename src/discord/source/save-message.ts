@@ -9,6 +9,7 @@ import { notify } from "src/telegram";
 import { MessageStatus, MessageType } from "src/types/message";
 
 import { getChannelById } from "./get-channel";
+import { blackList } from "./black-list";
 
 export const saveMessage = async (message: APIMessage, channelId: string) => {
   try {
@@ -20,7 +21,7 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       return;
     }
 
-    if (!message.author.bot) {
+    if (!message.author.bot || blackList.has(message.author.id)) {
       return;
     }
 

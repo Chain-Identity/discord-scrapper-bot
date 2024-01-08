@@ -87,3 +87,8 @@ model DiscordTargetBot {
   token                String
   DiscordTargetChannel DiscordTargetChannel[]
 }
+
+model BlackList {
+  id   String @id
+  type String
+}
