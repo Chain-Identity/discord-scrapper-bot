@@ -10,7 +10,7 @@ export const blackListHandler = new Composer<BotContext>();
 
 blackListHandler.command("add_black_list", async (ctx) => {
   try {
-    const [id] = ctx.match.split(" ");
+    const id = ctx.match;
 
     await ctx.replyWithChatAction("typing");
 
@@ -45,7 +45,7 @@ blackListHandler.command("add_black_list", async (ctx) => {
 
 blackListHandler.command("delete_black_list", async (ctx) => {
   try {
-    const [id] = ctx.match.split(" ");
+    const id = ctx.match;
 
     await ctx.replyWithChatAction("typing");
 
