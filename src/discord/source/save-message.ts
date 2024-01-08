@@ -36,6 +36,25 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
           })) || [],
       };
 
+      if (message.attachments.length === 0 && message.content.length < 1) {
+        notify(`Parsed empty message ${channelId}`);
+
+        console.log(message);
+
+        await prisma.discordSourceMessage.create({
+          data: {
+            id: message.id,
+            data: JSON.stringify({}),
+            type: MessageType.none,
+            status: MessageStatus.error,
+            discordSourceChannelId: channelId,
+            createdAt: new Date(message.timestamp),
+          },
+        });
+
+        return;
+      }
+
       await prisma.discordSourceMessage.create({
         data: {
           id: message.id,
