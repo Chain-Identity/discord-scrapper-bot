@@ -77,3 +77,73 @@ blackListHandler.command("delete_black_list", async (ctx) => {
     );
   }
 });
+
+blackListHandler.command("add_white_list", async (ctx) => {
+  try {
+    const id = ctx.match;
+
+    await ctx.replyWithChatAction("typing");
+
+    const saved = await prisma.whiteList.findUnique({ where: { id } });
+
+    if (saved) {
+      return ctx.replyFmt(fmt`Id ${bold(id)} already added in white list!`);
+    }
+
+    await prisma.whiteList.create({
+      data: {
+        id,
+        type: "source",
+      },
+    });
+
+    await initBlackList();
+
+    return ctx.replyFmt(fmt`Id ${bold(id)} added in white list!`);
+  } catch (e) {
+    console.error(e);
+    ctx.reply("Unknown error!");
+    return (
+      typeof e === "object" &&
+      e &&
+      "message" in e &&
+      typeof e.message === "string" &&
+      ctx.reply(e.message)
+    );
+  }
+});
+
+blackListHandler.command("delete_white_list", async (ctx) => {
+  try {
+    const id = ctx.match;
+
+    await ctx.replyWithChatAction("typing");
+
+    const saved = await prisma.whiteList.findUnique({ where: { id } });
+
+    if (!saved) {
+      return ctx.replyFmt(fmt`Id ${bold(id)} not found!`);
+    }
+
+    await prisma.whiteList.delete({
+      where: {
+        id,
+        type: "source",
+      },
+    });
+
+    await initBlackList();
+
+    return ctx.replyFmt(fmt`Id ${bold(id)} remove from white list!`);
+  } catch (e) {
+    console.error(e);
+    ctx.reply("Unknown error!");
+    return (
+      typeof e === "object" &&
+      e &&
+      "message" in e &&
+      typeof e.message === "string" &&
+      ctx.reply(e.message)
+    );
+  }
+});

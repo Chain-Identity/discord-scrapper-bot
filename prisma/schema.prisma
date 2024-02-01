@@ -92,3 +92,8 @@ model BlackList {
   id   String @id
   type String
 }
+
+model WhiteList {
+  id   String @id
+  type String
+}

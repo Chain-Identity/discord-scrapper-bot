@@ -22,6 +22,14 @@ export const launchTgBot = async () => {
       description: "Delete author id from black list",
     },
     {
+      command: "add_white_list",
+      description: "Add author id to white list",
+    },
+    {
+      command: "delete_white_list",
+      description: "Delete author id from white list",
+    },
+    {
       command: "delete_channel",
       description: "Delete channel",
     },

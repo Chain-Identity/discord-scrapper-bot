@@ -9,7 +9,7 @@ import { notify } from "src/telegram";
 import { MessageStatus, MessageType } from "src/types/message";
 
 import { getChannelById } from "./get-channel";
-import { blackList } from "./black-list";
+import { blackList, whiteList } from "./black-list";
 
 export const saveMessage = async (message: APIMessage, channelId: string) => {
   try {
@@ -21,10 +21,17 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       return;
     }
 
+    // if (
+    //   !message.author.bot ||
+    //   blackList.has(message.author.id) ||
+    //   blackList.has(message.author.username)
+    // ) {
+    //   return;
+    // }
+
     if (
-      !message.author.bot ||
-      blackList.has(message.author.id) ||
-      blackList.has(message.author.username)
+      !whiteList.has(message.author.id) &&
+      !whiteList.has(message.author.username)
     ) {
       return;
     }
