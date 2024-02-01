@@ -2,7 +2,7 @@ import { APIMessage } from "discord-api-types/v9";
 import { subDays } from "date-fns/subDays";
 import { isBefore } from "date-fns/isBefore";
 
-import { sourceDBot } from "./bot";
+import { sourceBotByChannelIdMap } from "./bot";
 
 interface GetMessagesProps {
   channelId: string;
@@ -24,6 +24,13 @@ export const getMessages = async ({
   let lastMessage: string | undefined = undefined;
   while (true) {
     console.log(`Fetching messages from ${channelId}...`);
+    const sourceDBot = sourceBotByChannelIdMap.get(channelId);
+
+    if (!sourceDBot) {
+      console.error(`No source bot for channel ${channelId}`);
+      return [];
+    }
+
     const messages = await sourceDBot.fetch_messages(
       ...([50, channelId, lastMessage].filter(Boolean) as [
         number,

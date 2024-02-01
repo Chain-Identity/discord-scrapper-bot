@@ -29,6 +29,7 @@ declare module "discord-user-bots" {
 
     info: {
       v: number;
+      user: APIUser;
       users: APIUser[];
       guilds: Guild[];
     };
