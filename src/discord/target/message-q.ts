@@ -162,10 +162,21 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
           .split("\n\n")
           .map((x) => x.trim())
           .filter(Boolean)
-          .map((value) => ({
-            name: "",
-            value: value,
-          }));
+          .flatMap((value) =>
+            value.length > 1024
+              ? value
+                  .split("\n")
+                  .map((x) => x.trim())
+                  .filter(Boolean)
+                  .map((x) => ({
+                    name: "",
+                    value: x,
+                  }))
+              : {
+                  name: "",
+                  value: value,
+                }
+          );
 
         const sendedMessage = await channel.send({
           embeds: [
