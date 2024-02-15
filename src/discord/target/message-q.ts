@@ -164,12 +164,18 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         : null;
 
       const messageReplyTarget = messageReplySource
-        ? await prisma.message.findFirst({
+        ? await prisma.message.findUnique({
             where: {
-              discordSourceMessage: messageReplySource,
+              id: messageReplySource.id,
             },
           })
         : null;
+
+      if (data.replyToId) {
+        console.log(data.replyToId);
+        console.log(messageReplySource);
+        console.log(messageReplyTarget);
+      }
 
       let messageId: string;
 
