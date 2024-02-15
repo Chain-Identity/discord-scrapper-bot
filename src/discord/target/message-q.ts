@@ -163,13 +163,14 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
           })
         : null;
 
-      const messageReplyTarget = messageReplySource
-        ? await prisma.message.findUnique({
-            where: {
-              id: messageReplySource.id,
-            },
-          })
-        : null;
+      const messageReplyTarget =
+        messageReplySource && messageReplySource.messageId
+          ? await prisma.message.findUnique({
+              where: {
+                id: messageReplySource.messageId,
+              },
+            })
+          : null;
 
       if (data.replyToId) {
         console.log(data.replyToId);
@@ -260,6 +261,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         },
         data: {
           status: MessageStatus.sent,
+          messageId: messageId,
         },
       });
 
