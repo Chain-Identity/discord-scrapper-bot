@@ -189,6 +189,13 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
                 : undefined,
             },
           ],
+
+          reply: message.replyToId
+            ? {
+                messageReference: message.replyToId,
+                failIfNotExists: false,
+              }
+            : undefined,
         });
 
         messageId = sendedMessage.id;
@@ -202,6 +209,13 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
                 },
                 description: "",
               }))
+            : undefined,
+
+          reply: message.replyToId
+            ? {
+                messageReference: message.replyToId,
+                failIfNotExists: false,
+              }
             : undefined,
         });
 

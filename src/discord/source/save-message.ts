@@ -36,7 +36,10 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       return;
     }
 
-    if (message.type === DiscordMessageType.Default) {
+    if (
+      message.type === DiscordMessageType.Default ||
+      message.type === DiscordMessageType.Reply
+    ) {
       const data = {
         content: message.content,
         attachments:
@@ -45,6 +48,7 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
             proxy_url: attachment.proxy_url,
             filename: attachment.filename,
           })) || [],
+        replyToId: message.message_reference?.message_id,
       };
 
       if (message.attachments.length === 0 && message.content.length < 1) {
