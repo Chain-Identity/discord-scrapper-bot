@@ -165,6 +165,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         ];
 
         const sendedMessage = await channel.send({
+          content: "",
           embeds: [
             {
               fields,
