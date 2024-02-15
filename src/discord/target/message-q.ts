@@ -140,9 +140,9 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         .replace("@here", "")
         .trim();
 
-      if (content.length < 5 && data.attachments.length === 0) {
-        notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
-        console.log(message);
+      if (content.length < 1 && data.attachments.length === 0) {
+        // notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
+        // console.log(message);
         await prisma.discordSourceMessage.update({
           where: {
             id: task.messageId,
@@ -158,7 +158,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       const messageReplySource = data.replyToId
         ? await prisma.discordSourceMessage.findFirst({
             where: {
-              messageId: data.replyToId,
+              id: data.replyToId,
             },
           })
         : null;
