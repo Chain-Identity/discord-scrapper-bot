@@ -12,7 +12,6 @@ export const sourceBotByChannelIdMap = new Map<string, Discord.Client>();
 export const guildByIdMap = new Map<string, Discord.Guild>();
 
 export const channelByIdMap = new Map<string, Discord.Channel>();
-export const channelByNameMap = new Map<string, Discord.Channel>();
 export const feedByIdMap = new Map<string, Discord.Channel>();
 export const feedByNameMap = new Map<string, Discord.Channel>();
 

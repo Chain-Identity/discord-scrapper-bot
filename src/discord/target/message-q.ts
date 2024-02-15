@@ -125,8 +125,15 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       const data: CommonMessage = JSON.parse(message.data);
 
       let content = data.content
+        //discord links
         .replace(/(?:__|[*#])|\[(.*?)\]\(.*discord\.com.*?\)/gm, "$1")
-        .replace(/(\|\|.*\|\|)/gm, "");
+        //discord spoiler
+        .replace(/(\|\|.*\|\|)/gm, "")
+        //discord mentions
+        .replace(/<@&(\d+)>/gm, "")
+        .replace("@everyone", "")
+        .replace("@here", "")
+        .trim();
 
       if (content.length < 5 && data.attachments.length === 0) {
         notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
@@ -143,25 +150,57 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         return;
       }
 
-      const sendedMessage = await channel.send({
-        content,
-        embeds: data.attachments.length
-          ? data.attachments.map((attachment) => ({
-              image: {
-                url: attachment.proxy_url,
-              },
-              description: "",
-            }))
-          : undefined,
-      });
+      let messageId: string;
+
+      if (content.length > 2000) {
+        const fields = [
+          content
+            .split("\n\n")
+            .map((x) => x.trim())
+            .filter(Boolean)
+            .map((value) => ({
+              name: "",
+              value: value,
+            })),
+        ];
+
+        const sendedMessage = await channel.send({
+          embeds: [
+            {
+              fields,
+              image: data.attachments.length
+                ? {
+                    url: data.attachments[0].proxy_url,
+                  }
+                : undefined,
+            },
+          ],
+        });
+
+        messageId = sendedMessage.id;
+      } else {
+        const sendedMessage = await channel.send({
+          content,
+          embeds: data.attachments.length
+            ? data.attachments.map((attachment) => ({
+                image: {
+                  url: attachment.proxy_url,
+                },
+                description: "",
+              }))
+            : undefined,
+        });
+
+        messageId = sendedMessage.id;
+      }
 
       await prisma.message.create({
         data: {
-          id: sendedMessage.id,
+          id: messageId,
           data: message.data,
           type: MessageType.common,
           discordTargetChannelId: channel.id,
-          createdAt: new Date(sendedMessage.createdTimestamp),
+          createdAt: new Date(),
         },
       });
 

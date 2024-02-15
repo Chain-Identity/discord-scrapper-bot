@@ -1,6 +1,6 @@
 import { Composer } from "grammy";
 
-import { getChannelByName, syncChannel } from "src/discord/source";
+import { syncChannel } from "src/discord/source";
 import { activeChannelSet } from "src/discord/source/bot";
 import { prisma } from "src/prisma";
 import { addChannel } from "src/discord/target";

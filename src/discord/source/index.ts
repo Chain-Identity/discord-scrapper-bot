@@ -1,6 +1,6 @@
 import { messageQ } from "src/discord/target";
 import { notify } from "src/telegram";
-import { SOURCE_GUILD_ID_LIST, SOURCE_FEED_GUILD_ID } from "src/config";
+import { SOURCE_FEED_GUILD_ID } from "src/config";
 
 import {
   sourceBotList,
@@ -8,7 +8,6 @@ import {
   sourceBotByGuildIdMap,
   guildByIdMap,
   channelByIdMap,
-  channelByNameMap,
   feedByNameMap,
   feedByIdMap,
   activeChannelSet,
@@ -57,13 +56,10 @@ export const launchSourceDBot = async () => {
       sourceBot.info.guilds.forEach((guild) => {
         guildByIdMap.set(guild.id, guild);
 
-        if (SOURCE_GUILD_ID_LIST.includes(guild.id)) {
-          guild.channels.forEach((channel) => {
-            channelByIdMap.set(channel.id, channel);
-            channelByNameMap.set(channel.name!, channel);
-            sourceBotByChannelIdMap.set(channel.id, sourceBot);
-          });
-        }
+        guild.channels.forEach((channel) => {
+          channelByIdMap.set(channel.id, channel);
+          sourceBotByChannelIdMap.set(channel.id, sourceBot);
+        });
 
         if (guild.id === SOURCE_FEED_GUILD_ID) {
           guild.channels.forEach((channel) => {
