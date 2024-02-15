@@ -155,6 +155,22 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         return;
       }
 
+      const messageReplySource = data.replyToId
+        ? await prisma.discordSourceMessage.findFirst({
+            where: {
+              messageId: data.replyToId,
+            },
+          })
+        : null;
+
+      const messageReplyTarget = messageReplySource
+        ? await prisma.message.findFirst({
+            where: {
+              discordSourceMessage: messageReplySource,
+            },
+          })
+        : null;
+
       let messageId: string;
 
       if (content.length > 2000) {
@@ -190,9 +206,9 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
             },
           ],
 
-          reply: message.replyToId
+          reply: messageReplyTarget
             ? {
-                messageReference: message.replyToId,
+                messageReference: messageReplyTarget.id,
                 failIfNotExists: false,
               }
             : undefined,
@@ -211,9 +227,9 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
               }))
             : undefined,
 
-          reply: message.replyToId
+          reply: messageReplyTarget
             ? {
-                messageReference: message.replyToId,
+                messageReference: messageReplyTarget.id,
                 failIfNotExists: false,
               }
             : undefined,

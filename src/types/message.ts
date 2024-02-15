@@ -28,6 +28,7 @@ export type Attachment = {
 export type CommonMessage = {
   content: string;
   attachments: Attachment[];
+  replyToId?: string;
 };
 
 export type EmbedWithUrlField = {
