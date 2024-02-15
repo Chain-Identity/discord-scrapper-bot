@@ -90,6 +90,8 @@ const getTargetChannel = async (task: Task) => {
   });
 };
 
+type UnPromisify<T> = T extends Promise<infer U> ? U : T;
+
 export const messageQ = fastq.promise<void, Task, void>(async (task) => {
   try {
     const targetChannel = await getTargetChannel(task);
@@ -104,14 +106,17 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
 
-    const [channel, message] = await Promise.all([
+    const [channel, message]: [
+      UnPromisify<ReturnType<typeof targetBot.channels.fetch>>,
+      UnPromisify<ReturnType<typeof prisma.discordSourceMessage.findUnique>>
+    ] = await Promise.all([
       targetBot.channels.fetch(targetChannel.id),
       prisma.discordSourceMessage.findUnique({
         where: {
           id: task.messageId,
         },
       }),
-    ]);
+    ] as const);
 
     if (!channel || !channel.isTextBased() || !message) {
       return;
@@ -153,19 +158,16 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       let messageId: string;
 
       if (content.length > 2000) {
-        const fields = [
-          content
-            .split("\n\n")
-            .map((x) => x.trim())
-            .filter(Boolean)
-            .map((value) => ({
-              name: "",
-              value: value,
-            })),
-        ];
+        const fields = content
+          .split("\n\n")
+          .map((x) => x.trim())
+          .filter(Boolean)
+          .map((value) => ({
+            name: "",
+            value: value,
+          }));
 
         const sendedMessage = await channel.send({
-          content: "",
           embeds: [
             {
               fields,
