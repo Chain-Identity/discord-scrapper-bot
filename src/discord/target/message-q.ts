@@ -95,7 +95,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
     task,
   });
 
-  traceTask.info("Start processing message");
+  traceTask.debug("Start processing message");
 
   try {
     const targetChannel = await getTargetChannel(task);
@@ -129,6 +129,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       message,
     });
 
+    trace.debug("Got channel and message");
+
     if (!channel || !channel.isTextBased() || !message) {
       if (!channel) {
         trace.error("Channel not found");
@@ -161,6 +163,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         .replace("@everyone", "")
         .replace("@here", "")
         .trim();
+
+      trace.debug({ data, content }, "Got message data");
 
       if (content.length < 1 && data.attachments.length === 0) {
         // notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
@@ -307,6 +311,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         },
       });
 
+      trace.debug("Message saved");
       return;
     }
     trace.error("Message type not supported");
