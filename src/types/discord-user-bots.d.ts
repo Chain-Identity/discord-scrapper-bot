@@ -12,6 +12,7 @@ declare module "discord-user-bots" {
     on: {
       ready: () => void;
       message_create: (message: APIMessage) => void;
+      reply: (message: APIMessage) => void;
     };
 
     public fetch_messages(

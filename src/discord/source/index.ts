@@ -1,6 +1,7 @@
 import { messageQ } from "src/discord/target";
 import { notify } from "src/telegram";
 import { SOURCE_FEED_GUILD_ID } from "src/config";
+import { APIMessage } from "discord-api-types/v9";
 
 import {
   sourceBotList,
@@ -20,7 +21,7 @@ import { log } from "./log";
 
 export const launchSourceDBot = async () => {
   for (const sourceBot of sourceBotList) {
-    sourceBot.on.message_create = async function (message) {
+    const messageProcces = async function (message: APIMessage) {
       if (activeChannelSet.has(message.channel_id)) {
         await saveMessage(message, message.channel_id);
 
@@ -57,6 +58,10 @@ export const launchSourceDBot = async () => {
         );
       }
     };
+
+    sourceBot.on.message_create = messageProcces;
+    sourceBot.on.reply = messageProcces;
+
     sourceBot.on.ready = function () {
       log.info(`Discord source bot started! ${sourceBot.info.user.username}`);
 
