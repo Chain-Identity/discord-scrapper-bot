@@ -2,17 +2,20 @@ import { Client, GatewayIntentBits } from "discord.js";
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
 
+import { log } from "./log";
+
 const botMap = new Map<string, Client>();
 
 export const initBot = async (name: string) => {
   const botDb = await prisma.discordTargetBot.findFirst({ where: { name } });
   try {
     if (!botDb) {
-      console.log(`bot ${botDb} not found`);
+      log.error(`bot ${name} not found`);
       return;
     }
 
     if (botMap.has(name)) {
+      log.debug(`bot ${name} already started`);
       return;
     }
 
@@ -31,8 +34,7 @@ export const initBot = async (name: string) => {
 
     botMap.set(name, targetBot);
   } catch (error) {
-    console.error(error);
-    console.log(name);
+    log.error(error, `Error in starting target bot ${name} ${botDb?.token}`);
 
     notify(`Error in starting target bot ${name} ${botDb?.token}`);
   }

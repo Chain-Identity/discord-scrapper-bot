@@ -3,21 +3,32 @@ import {
   MessageType as DiscordMessageType,
 } from "discord-api-types/v9";
 import "@total-typescript/ts-reset/filter-boolean";
+import { nanoid } from "nanoid";
 
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
 import { MessageStatus, MessageType } from "src/types/message";
 
 import { getChannelById } from "./get-channel";
-import { blackList, whiteList } from "./black-list";
+import { whiteList } from "./black-list";
+import { log } from "./log";
 
 export const saveMessage = async (message: APIMessage, channelId: string) => {
+  const traceId = nanoid();
+
+  const trace = log.child({
+    traceId,
+    channelId,
+    message,
+  });
+
   try {
     if (
       await prisma.discordSourceMessage.findUnique({
         where: { id: message.id },
       })
     ) {
+      trace.debug("Message already saved");
       return;
     }
 
@@ -33,6 +44,7 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       !whiteList.has(message.author.id) &&
       !whiteList.has(message.author.username)
     ) {
+      trace.debug("Message from not white listed user");
       return;
     }
 
@@ -55,6 +67,8 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
         // notify(`Parsed empty message ${channelId}`);
         // console.log(message);
 
+        trace.debug("Parsed empty message");
+
         await prisma.discordSourceMessage.create({
           data: {
             id: message.id,
@@ -69,6 +83,8 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
         return;
       }
 
+      trace.debug("Saving message");
+
       await prisma.discordSourceMessage.create({
         data: {
           id: message.id,
@@ -80,7 +96,13 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
         },
       });
     } else {
-      console.log(message);
+      trace.error(
+        `Message type ${DiscordMessageType[message.type]} (${
+          message.type
+        }) not supported in channel ${channelId} ${
+          getChannelById(channelId)?.name
+        }`
+      );
       notify(
         `Message type ${DiscordMessageType[message.type]} (${
           message.type
@@ -101,6 +123,6 @@ export const saveMessage = async (message: APIMessage, channelId: string) => {
       });
     }
   } catch (e) {
-    console.error(e);
+    trace.error(e, "Error in saving message");
   }
 };

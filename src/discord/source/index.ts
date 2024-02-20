@@ -16,6 +16,7 @@ import {
 import { init } from "./init";
 import { saveMessage } from "./save-message";
 import { saveFeedMessage } from "./save-feed-message";
+import { log } from "./log";
 
 export const launchSourceDBot = async () => {
   for (const sourceBot of sourceBotList) {
@@ -32,6 +33,10 @@ export const launchSourceDBot = async () => {
         if (channel) {
           notify(`Find new message in ${channel?.name}`);
         }
+        log.debug(
+          { channel, message, bot: sourceBot.info.user.username },
+          `Find new message in ${channel?.name}`
+        );
       }
 
       if (activeFeedSet.has(message.channel_id)) {
@@ -46,12 +51,14 @@ export const launchSourceDBot = async () => {
         if (channel) {
           notify(`Find new feed message in ${channel?.name}`);
         }
+        log.debug(
+          { channel, message, bot: sourceBot.info.user.username },
+          `Find new message in feed ${channel?.name}`
+        );
       }
     };
     sourceBot.on.ready = function () {
-      console.log(
-        `Discord source bot started! ${sourceBot.info.user.username}`
-      );
+      log.info(`Discord source bot started! ${sourceBot.info.user.username}`);
 
       sourceBot.info.guilds.forEach((guild) => {
         guildByIdMap.set(guild.id, guild);

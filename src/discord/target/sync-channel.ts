@@ -3,6 +3,8 @@ import { prisma } from "src/prisma";
 import { messageQ } from "./message-q";
 import { MessageStatus } from "src/types/message";
 
+import { log } from "./log";
+
 export const syncAllChannels = async () => {
   const channels = await prisma.discordTargetChannel.findMany();
 
@@ -17,8 +19,8 @@ export const syncTargetChannel = async (targetChannelId: string) => {
       discordTargetChannelId: targetChannelId,
     },
   });
-  if(!sourceChannel){
-    return
+  if (!sourceChannel) {
+    return;
   }
   const messages = await prisma.discordSourceMessage.findMany({
     where: {
@@ -33,6 +35,10 @@ export const syncTargetChannel = async (targetChannelId: string) => {
       id: true,
     },
   });
+
+  if (messages.length !== 0) {
+    log.info(`Syncing ${messages.length} messages to ${targetChannelId}`);
+  }
 
   for (const message of messages) {
     messageQ.push({

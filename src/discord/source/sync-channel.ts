@@ -6,6 +6,7 @@ import { syncTargetChannel } from "src/discord/target";
 import { getMessages } from "./get-messages";
 import { activeChannelSet } from "./bot";
 import { saveMessage } from "./save-message";
+import { log } from "./log";
 
 export const syncAllChannels = async () => {
   const channels = await prisma.discordSourceChannel.findMany();
@@ -68,6 +69,12 @@ export const syncChannel = async ({
       }`
     );
 
+    log.info(
+      `Syncing ${messages.length} messages from source channel ${
+        channel ? channel.name : channelId
+      }`
+    );
+
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     if (channel?.discordTargetChannelId) {
@@ -75,5 +82,9 @@ export const syncChannel = async ({
     }
 
     await new Promise((resolve) => setTimeout(resolve, 200));
+  } else {
+    log.debug(
+      `No new messages in source channel ${channel ? channel.name : channelId}`
+    );
   }
 };

@@ -1,18 +1,13 @@
 import fastq from "fastq";
+import { nanoid } from "nanoid";
 
 import { prisma } from "src/prisma";
 import { notify } from "src/telegram";
 
 import { getBot } from "./bot";
-import {
-  MessageType,
-  ImageMessage,
-  CommonMessage,
-  EmbedWithUrlMessage,
-  FieldType,
-  MessageStatus,
-} from "src/types/message";
-import { Attachment } from "discord.js";
+import { MessageType, CommonMessage, MessageStatus } from "src/types/message";
+
+import { log } from "./log";
 
 type Task = {
   messageId: string;
@@ -93,16 +88,27 @@ const getTargetChannel = async (task: Task) => {
 type UnPromisify<T> = T extends Promise<infer U> ? U : T;
 
 export const messageQ = fastq.promise<void, Task, void>(async (task) => {
+  const traceId = nanoid();
+
+  const traceTask = log.child({
+    traceId,
+    task,
+  });
+
+  traceTask.info("Start processing message");
+
   try {
     const targetChannel = await getTargetChannel(task);
 
     if (!targetChannel) {
+      traceTask.error("Target channel not found");
       return;
     }
 
     const targetBot = getBot(targetChannel.DiscordTargetBot?.name);
 
     if (!targetBot) {
+      traceTask.error("Target bot not found");
       return;
     }
 
@@ -118,11 +124,28 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       }),
     ] as const);
 
+    const trace = traceTask.child({
+      channel,
+      message,
+    });
+
     if (!channel || !channel.isTextBased() || !message) {
+      if (!channel) {
+        trace.error("Channel not found");
+      }
+      if (!channel?.isTextBased()) {
+        trace.error("Channel is not text based");
+      }
+
+      if (!message) {
+        trace.error("Message not found");
+      }
+
       return;
     }
 
     if (message.status === MessageStatus.sent) {
+      trace.debug("Message already sent");
       return;
     }
 
@@ -143,6 +166,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       if (content.length < 1 && data.attachments.length === 0) {
         // notify(`Empty message in ${targetChannel.name} (${targetChannel.id})`);
         // console.log(message);
+        trace.debug({ content }, "Empty message");
+
         await prisma.discordSourceMessage.update({
           where: {
             id: task.messageId,
@@ -172,15 +197,10 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
             })
           : null;
 
-      if (data.replyToId) {
-        console.log(data.replyToId);
-        console.log(messageReplySource);
-        console.log(messageReplyTarget);
-      }
-
       let messageId: string;
 
       if (content.length > 2000) {
+        trace.debug("Message too long");
         const fields = content
           .split("\n\n")
           .map((x) => x.trim())
@@ -222,6 +242,18 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         });
 
         messageId = sendedMessage.id;
+
+        trace.debug(
+          {
+            content,
+            fields,
+            data,
+            messageReplySource,
+            messageReplyTarget,
+            sendedMessage,
+          },
+          "Long message sent"
+        );
       } else {
         const sendedMessage = await channel.send({
           content,
@@ -243,6 +275,17 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
         });
 
         messageId = sendedMessage.id;
+
+        trace.debug(
+          {
+            content,
+            data,
+            messageReplySource,
+            messageReplyTarget,
+            sendedMessage,
+          },
+          "Message sent"
+        );
       }
 
       await prisma.message.create({
@@ -268,8 +311,8 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
       return;
     }
   } catch (e) {
-    console.error(e);
     const targetChannel = await getTargetChannel(task).catch(() => null);
+    traceTask.error(e, "Error in sending message " + targetChannel?.name || "");
     notify("Error in sending message " + targetChannel?.name || "");
     await prisma.discordSourceMessage.update({
       where: {

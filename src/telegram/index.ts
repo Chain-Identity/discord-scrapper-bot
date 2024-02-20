@@ -1,8 +1,9 @@
 import { tgBot } from "./bot";
+import { log } from "./log";
 
 export const launchTgBot = async () => {
   await new Promise((resolve) => setTimeout(resolve, 10000));
-  tgBot.start().catch(console.error);
+  tgBot.start().catch((e) => log.error(e, "Telegram bot error"));
 
   await tgBot.api.setMyCommands([
     {
@@ -63,7 +64,7 @@ export const launchTgBot = async () => {
     },
   ]);
 
-  console.log("Telegram bot started!");
+  log.info("Telegram bot started!");
 };
 
 export * from "./notify";

@@ -1,8 +1,10 @@
 import { APIMessage } from "discord-api-types/v9";
 import { subDays } from "date-fns/subDays";
 import { isBefore } from "date-fns/isBefore";
+import { nanoid } from "nanoid";
 
 import { sourceBotByChannelIdMap } from "./bot";
+import { log } from "./log";
 
 interface GetMessagesProps {
   channelId: string;
@@ -17,17 +19,28 @@ export const getMessages = async ({
   short,
   lastNDays,
 }: GetMessagesProps) => {
+  const traceId = nanoid();
+  const trace = log.child({
+    traceId,
+    channelId,
+    lastSavedMessageId,
+    short,
+    lastNDays,
+  });
+
+  trace.info("call getMessages");
+
   const result: APIMessage[] = [];
 
   const firstDate = lastNDays ? subDays(new Date(), lastNDays) : null;
 
   let lastMessage: string | undefined = undefined;
   while (true) {
-    console.log(`Fetching messages from ${channelId}...`);
+    trace.debug(`Fetching messages...`);
     const sourceDBot = sourceBotByChannelIdMap.get(channelId);
 
     if (!sourceDBot) {
-      console.error(`No source bot for channel ${channelId}`);
+      trace.error(`No source bot for channel ${channelId}`);
       return [];
     }
 
@@ -39,8 +52,10 @@ export const getMessages = async ({
       ])
     );
 
+    trace.debug(`Fetched ${messages.length} messages`);
+
     if (!Array.isArray(messages)) {
-      console.error(messages);
+      trace.error(messages);
       return [];
     }
 
@@ -62,6 +77,7 @@ export const getMessages = async ({
       messages.length !== resultList.length ||
       short
     ) {
+      trace.debug({ messages, resultList }, `No more messages`);
       break;
     }
 
@@ -69,6 +85,8 @@ export const getMessages = async ({
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
+
+  trace.info(`Fetched ${result.length} messages`);
 
   return result;
 };

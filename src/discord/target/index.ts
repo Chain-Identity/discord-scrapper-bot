@@ -2,10 +2,11 @@ import { prisma } from "src/prisma";
 
 import { initBot } from "./bot";
 import { init } from "./init";
+import { log } from "./log";
 
 export const launchTargetDBot = async () => {
   try {
-    console.log("launch target bots");
+    log.info("launch target bots");
 
     const botList = await prisma.discordTargetBot.findMany();
 
@@ -15,7 +16,7 @@ export const launchTargetDBot = async () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    console.log("Discord Target bots started!");
+    log.info("Discord Target bots started!");
 
     init();
   } catch (e) {
