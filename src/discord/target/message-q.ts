@@ -132,13 +132,12 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
     if (!channel || !channel.isTextBased() || !message) {
       if (!channel) {
         trace.error("Channel not found");
-      }
-      if (!channel?.isTextBased()) {
+      } else if (!channel?.isTextBased()) {
         trace.error("Channel is not text based");
-      }
-
-      if (!message) {
+      } else if (!message) {
         trace.error("Message not found");
+      } else {
+        trace.error("Unknown error");
       }
 
       return;
