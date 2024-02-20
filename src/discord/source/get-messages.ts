@@ -28,7 +28,7 @@ export const getMessages = async ({
     lastNDays,
   });
 
-  trace.info("call getMessages");
+  trace.debug("call getMessages");
 
   const result: APIMessage[] = [];
 
@@ -86,7 +86,7 @@ export const getMessages = async ({
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
-  trace.info(`Fetched ${result.length} messages`);
+  trace.debug(`Fetched ${result.length} messages`);
 
   return result;
 };
