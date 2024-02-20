@@ -310,6 +310,7 @@ export const messageQ = fastq.promise<void, Task, void>(async (task) => {
 
       return;
     }
+    trace.error("Message type not supported");
   } catch (e) {
     const targetChannel = await getTargetChannel(task).catch(() => null);
     traceTask.error(e, "Error in sending message " + targetChannel?.name || "");
